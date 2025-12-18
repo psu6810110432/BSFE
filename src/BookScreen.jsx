@@ -1,3 +1,4 @@
+// BookScreen.jsx (ปรับปรุงการนำเข้าไฟล์จากโฟลเดอร์ components)
 import './App.css'
 import { useState, useEffect } from 'react';
 import { Divider, Spin } from 'antd';
@@ -5,6 +6,7 @@ import axios from 'axios'
 import BookList from './components/BookList'
 import AddBook from './components/AddBook';
 import EditBook from './components/EditBook';
+import Clock from './components/Clock';
 
 const URL_BOOK = "/api/book"
 const URL_CATEGORY = "/api/book-category"
@@ -42,7 +44,7 @@ function BookScreen() {
   const handleAddBook = async (book) => {
     setLoading(true)
     try {
-      const response = await axios.post(URL_BOOK, book);
+      await axios.post(URL_BOOK, book);
       fetchBooks();
     } catch (error) {
       console.error('Error adding book:', error);
@@ -54,7 +56,7 @@ function BookScreen() {
   const handleLikeBook = async (book) => {
     setLoading(true)
     try {
-      const response = await axios.patch(URL_BOOK + `/${book.id}`, { likeCount: book.likeCount + 1 });
+      await axios.patch(URL_BOOK + `/${book.id}`, { likeCount: book.likeCount + 1 });
       fetchBooks();
     } catch (error) {
       console.error('Error liking book:', error);
@@ -66,7 +68,7 @@ function BookScreen() {
   const handleDeleteBook = async (bookId) => {
     setLoading(true)
     try {
-      const response = await axios.delete(URL_BOOK + `/${bookId}`);
+      await axios.delete(URL_BOOK + `/${bookId}`);
       fetchBooks();
     } catch (error) {
       console.error('Error deleting book:', error);
@@ -80,7 +82,7 @@ function BookScreen() {
     try {
       const editedData = {...book, 'price': Number(book.price), 'stock': Number(book.stock)}
       const {id, category, createdAt, updatedAt, ...data} = editedData
-      const response = await axios.patch(URL_BOOK + `/${id}`, data);
+      await axios.patch(URL_BOOK + `/${id}`, data);
       fetchBooks();
     } catch (error) {
       console.error('Error editing book:', error);
@@ -97,26 +99,29 @@ function BookScreen() {
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "center", marginBottom: "2em" }}>
-        <AddBook categories={categories} onBookAdded={handleAddBook}/>
+      <div style={{ padding: '20px' }}>
+        <Clock />
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "2em" }}>
+          <AddBook categories={categories} onBookAdded={handleAddBook}/>
+        </div>
+        <Divider>
+          My Books List
+        </Divider>
+        <Spin spinning={loading}>
+          <BookList 
+            data={bookData} 
+            onLiked={handleLikeBook}
+            onDeleted={handleDeleteBook}
+            onEdit={book => setEditBook(book)}
+          />
+        </Spin>
+        <EditBook 
+          book={editBook} 
+          categories={categories} 
+          open={editBook !== null} 
+          onCancel={() => setEditBook(null)} 
+          onSave={handleEditBook} />
       </div>
-      <Divider>
-        My Books List
-      </Divider>
-      <Spin spinning={loading}>
-        <BookList 
-          data={bookData} 
-          onLiked={handleLikeBook}
-          onDeleted={handleDeleteBook}
-          onEdit={book => setEditBook(book)}
-        />
-      </Spin>
-      <EditBook 
-        book={editBook} 
-        categories={categories} 
-        open={editBook !== null} 
-        onCancel={() => setEditBook(null)} 
-        onSave={handleEditBook} />
     </>
   )
 }
